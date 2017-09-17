@@ -20,6 +20,7 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.stream.Collectors;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -38,6 +39,10 @@ public class Vista extends javax.swing.JFrame implements Observer{
      */
     public void setControlador(Controlador controlador) {
         this.controlador = controlador;
+        this.addKeyListener(controlador);
+   
+        undoMnuItm.addActionListener(controlador);
+        redoMnuItm.addActionListener(controlador);
         guardarMnuItm.addActionListener(controlador);
         recuperarMnuItm.addActionListener(controlador);
         limpiarMnuItm.addActionListener(controlador);
@@ -47,9 +52,9 @@ public class Vista extends javax.swing.JFrame implements Observer{
         hileraMnuItm.addActionListener(controlador);
     }
     private Graphics2D g2;
-    private JMenuItem guardarMnuItm,recuperarMnuItm,limpiarMnuItm,inicialMnuItm,intermedioMnuItm,finalMnuItm,hileraMnuItm;
+    private JMenuItem guardarMnuItm,recuperarMnuItm,limpiarMnuItm,inicialMnuItm,intermedioMnuItm,finalMnuItm,hileraMnuItm,undoMnuItm,redoMnuItm;
     private JMenuBar menuBar;
-    private JMenu archivoMnu,estadoMnu,verificarMnu;
+    private JMenu archivoMnu,estadoMnu,verificarMnu,ediMnu;
     private ArrayList<RoundButton> automatas;
     private Controlador controlador;
     private JTable table;
@@ -96,8 +101,10 @@ public class Vista extends javax.swing.JFrame implements Observer{
         tableModel.addRow(aux);
     }
     private void InitiaizePrimaryButtons(){
+        this.addKeyListener(controlador);
+        this.setFocusable(true);
         menuBar = new JMenuBar();        
-        
+            ediMnu= new JMenu("Edit");
             archivoMnu= new JMenu("Archivo");
                 guardarMnuItm=new JMenuItem("Guardar");
             archivoMnu.add(guardarMnuItm);
@@ -120,13 +127,19 @@ public class Vista extends javax.swing.JFrame implements Observer{
                 hileraMnuItm= new JMenuItem("Hilera");
             verificarMnu.add(hileraMnuItm);
         menuBar.add(verificarMnu);
+            undoMnuItm= new JMenuItem("Undo");
+            ediMnu.add(undoMnuItm);
+            redoMnuItm= new JMenuItem("Redo");
+            ediMnu.add(redoMnuItm);
+        menuBar.add(ediMnu);
         
     setJMenuBar(menuBar);
     }
     private void updateStateView(Object arg){
         if (automatas.size()!=0) {
-                if (!automatas.stream().anyMatch(x->x.getText().equals(((State)arg).getStateId()))) {
+                if (!automatas.stream().anyMatch(x->x.getText().equals(((State)arg).getStateId()))&& ((State)arg).isVisible()) {
                     automatas.add(new RoundButton(((State)arg).getStateId()));
+                    automatas.get(automatas.size()-1).addKeyListener(controlador);
                     automatas.get(automatas.size()-1).setBounds(((State)arg).getPosition().getX()+100,((State)arg).getPosition().getY()+100, 48, 48);
                     this.add(automatas.get(automatas.size()-1));
                     automatas.get(automatas.size()-1).addMouseMotionListener(controlador);
@@ -144,18 +157,19 @@ public class Vista extends javax.swing.JFrame implements Observer{
                     }
                      this.add(automatas.get(automatas.size()-1));
                 }
-                else
+                else if(((State)arg).isVisible())
                 {
                     RoundButton auxRB=(RoundButton) automatas.stream().filter(x->x.getText().equals(((State)arg).getStateId())).collect(Collectors.toList()).get(0);//actualiza estado en vista
                     auxRB.setBounds(((State)arg).getPosition().getX(),((State)arg).getPosition().getY(), 50, 50);
                 }
             }
-            else{
+        else if(((State)arg).isVisible()){
                 automatas.add(new RoundButton(((State)arg).getStateId()));                
                 automatas.get(0).setBounds(((State)arg).getPosition().getX(),((State)arg).getPosition().getY(), 50, 50);
                 this.add(automatas.get(0));
                 automatas.get(0).addMouseMotionListener(controlador);
                 automatas.get(0).addMouseListener(controlador);
+                automatas.get(0).addKeyListener(controlador);
                 switch(((State)arg).getType()){
                     case 1:
                     automatas.get(0).setBackground(Color.BLUE);
@@ -168,8 +182,17 @@ public class Vista extends javax.swing.JFrame implements Observer{
                      break;
                 }
                 this.add(automatas.get(0));
+               
                 //automatas.get(0).setVisible(true);
             }
+        if(!((State)arg).isVisible()){
+            int temp = automatas.size();
+            this.remove(automatas.get(temp-1));
+           automatas.remove(temp-1);
+            this.revalidate();
+            this.repaint();
+        }
+        
     }
     private void updateTransitionsView(Observable o,Object arg){
         ((Transition)arg).getFrom().getPosition().getX();
@@ -180,15 +203,16 @@ public class Vista extends javax.swing.JFrame implements Observer{
             if (((Transition)arg).isFinalPosition()) {
 //*******************Updates table*********************************************************************//                
                tableModel.setRowCount(0);
-                ((Modelo)o).getTransitions().stream().forEach(x->addToTable(x.getFrom().getStateId(), x.getTo().getStateId(),x.getSyntax()));
+                ((Modelo)o).getTransitionsTemp().stream().forEach(x->addToTable(x.getFrom().getStateId(), x.getTo().getStateId(),x.getSyntax()));
 //****************************************************************************************//                                
-                ((Modelo)o).getTransitions().stream().forEach(x->paintLine(x.getFrom().getPosition().getX()+50, x.getFrom().getPosition().getY()+80, x.getTo().getPosition().getX(), x.getTo().getPosition().getY()+80));
+                ((Modelo)o).getTransitionsTemp().stream().forEach(x->paintLine(x.getFrom().getPosition().getX()+50, x.getFrom().getPosition().getY()+80, x.getTo().getPosition().getX(), x.getTo().getPosition().getY()+80));
+                
             }
             else{
                 
                 repaint();
               //  paintLine(((Transition)arg).getFrom().getPosition().getX()+25, ((Transition)arg).getFrom().getPosition().getY()+80, ((Transition)arg).getTo().getPosition().getX()+25, ((Transition)arg).getTo().getPosition().getY()+80);
-                ((Modelo)o).getTransitions().stream().forEach(x->paintLine(x.getFrom().getPosition().getX()+50, x.getFrom().getPosition().getY()+80, x.getTo().getPosition().getX(), x.getTo().getPosition().getY()+80));
+                ((Modelo)o).getTransitionsTemp().stream().forEach(x->paintLine(x.getFrom().getPosition().getX()+50, x.getFrom().getPosition().getY()+80, x.getTo().getPosition().getX(), x.getTo().getPosition().getY()+80));
             }
     }
     /**
@@ -227,11 +251,11 @@ public class Vista extends javax.swing.JFrame implements Observer{
         else if (arg instanceof String) {
             JOptionPane.showConfirmDialog(null, ((String)arg));            
         }
+       
+        this.revalidate();
+            this.repaint();
                 
     }
-
-  
-
  
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables

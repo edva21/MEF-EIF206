@@ -23,7 +23,9 @@ public class MEFEIF306Ver10 {
         // TODO code application logic here
         Modelo modelo= new Modelo();
         Vista vista=new Vista();
-        Controlador controlador = new Controlador(modelo, vista);        
+        Controlador controlador = new Controlador(modelo, vista);
+        
+        
     }
     
 }

@@ -18,8 +18,10 @@ public class State {//Esta Clase Representa los estados
     private ArrayList<Transition> sent;
     private ArrayList<Transition> received;
     private Position position;
+    boolean visible;
 
     public State(String stateId,int _type) {
+        visible= true;
         this.stateId = stateId;
         position = new Position(0, 0);
         sent = new ArrayList<Transition>();
@@ -94,6 +96,15 @@ public class State {//Esta Clase Representa los estados
      */
     public Position getPosition() {
         return position;
-    }    
+    }
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+    
     
 }

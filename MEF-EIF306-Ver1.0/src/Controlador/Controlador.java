@@ -12,6 +12,8 @@ import Vista.Vista;
 import java.awt.MenuItem;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -23,7 +25,7 @@ import javax.swing.JTextField;
  *
  * @author edva5
  */
-public class Controlador implements ActionListener,MouseListener,MouseMotionListener {
+public class Controlador implements ActionListener,MouseListener,MouseMotionListener,KeyListener {
     private Modelo modelo;
     private Vista vista;
 
@@ -35,7 +37,7 @@ public class Controlador implements ActionListener,MouseListener,MouseMotionList
         vista.setVisible(true);
 /************************Prueba****************************************/   //Agrego Estados Para Prueba    
         modelo.createState("A", State.INITIAL);
-        modelo.createState("B", State.INTERMEDIATE);
+       modelo.createState("B", State.INTERMEDIATE);
         modelo.createState("C", State.INTERMEDIATE);
         /*modelo.createState("D", State.INTERMEDIATE);
         modelo.createState("E", State.INTERMEDIATE);
@@ -50,18 +52,32 @@ public class Controlador implements ActionListener,MouseListener,MouseMotionList
     
 
     @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() instanceof JMenuItem) {
-            if (e.getActionCommand().equals("Inicial"))           
-                modelo.createState(vista.showImputDialog("Ingrese ID del Estado"+" Inicial"),State.INITIAL);//Crea Estado de Inicio
-            else if (e.getActionCommand().equals("Intermedio"))
-                modelo.createState(vista.showImputDialog("Ingrese ID del Estado"+" Intermedio"),State.INTERMEDIATE);//Crea Estado Final
-            else if (e.getActionCommand().equals("Final"))
-                modelo.createState(vista.showImputDialog("Ingrese ID del Estado"+" Final"),State.FINAL);//Crea Estado Final
-            else if (e.getActionCommand().equals("Hilera"))
-                modelo.tryHilera(vista.showImputDialog("Introdusca La Hilera a probar"));//Prueba que Hilara este bien escrita segun Sintaxis xreada
+    public void actionPerformed(ActionEvent e)  {
+        switch(e.getActionCommand()){
+            case "Guardar":
+                break;
+            case "Recuperar":
+                break;
+            case "Limpiar":
+                break;
+            case "Inicial":
+                modelo.createState(vista.showImputDialog("Ingrese ID del Estado"+" Inicial"),State.INITIAL);
+                break;
+            case "Intermedio":
+                modelo.createState(vista.showImputDialog("Ingrese ID del Estado"+" Intermedio"),State.INTERMEDIATE);
+                break;
+            case "Final":
+                modelo.createState(vista.showImputDialog("Ingrese ID del Estado"+" Final"),State.FINAL);
+                break;
+            case "Hilera":
+                break;
+            case "Undo":
+                modelo.undo();
+                break;
+            case "Redo":
+                modelo.redo();
+                break;
         }
-        
     }    
 
     @Override
@@ -69,7 +85,8 @@ public class Controlador implements ActionListener,MouseListener,MouseMotionList
         if (e.getSource() instanceof RoundButton )    //RoundButton son los Objetos que representan los estados 
         {            
             if (!modelo.isSelected())
-                modelo.addTransition(((RoundButton)e.getSource()).getText());   //Guarda estado en una pila, si la pila.size() ==2,                                     
+                modelo.addTransition(((RoundButton)e.getSource()).getText());   //Guarda estado en una pila, si la pila.size() ==2,  
+            
             else                                                                //toma el primer estado guardado como Origen del cambio de Estado y el segundo como destino
                 modelo.addTransition(((RoundButton)e.getSource()).getText(),vista.showImputDialog("Escriba Sintaxis"));                //Una vez ingresados los puntos se pide cual va a ser la sintaxis
         }          
@@ -112,6 +129,23 @@ public class Controlador implements ActionListener,MouseListener,MouseMotionList
     @Override
     public void mouseMoved(MouseEvent e) {
 //        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        // System.out.println("Controlador.Controlador.keyPressed()"+e.getModifiersEx());
+    }
+    @Override
+    public void keyPressed(KeyEvent e) {
+        
+        if(e.getKeyCode()==37){modelo.undo();}
+        if(e.getKeyCode()==39){modelo.redo();}
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        
+        
     }
 }//JFileChooser ------- Para guardar o abrir un arhivo exterior
 

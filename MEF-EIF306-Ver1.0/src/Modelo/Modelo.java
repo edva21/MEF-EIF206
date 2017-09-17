@@ -22,20 +22,30 @@ import javax.swing.JOptionPane;
  */
 public class Modelo extends Observable {
     private ArrayList<State> states;//Estado
-    private ArrayList<Transition> transitions;//Cambios de Estados
+    private ArrayList<Transition> transitionsTemp;//Cambios de Estados
     private ArrayList<State> tempStates;//Pila de Estados
+    private ArrayList<Transition> transition;
+    private ArrayList<String> historial;//historial de estamdos y transiciones 
     private boolean selected;
+    private int actualH;
+    private int actualS;
+    private int actualT;
     public Modelo() {
+        actualH= -1;
+        actualS= -1;
+        actualT= -1;
         states= new ArrayList<State>();        
-        transitions=new ArrayList<Transition>();
+        transitionsTemp=new ArrayList<Transition>();
+        transition = new ArrayList<Transition>();
         tempStates=new ArrayList<State>();
+        historial= new ArrayList<String>();
         selected=false;
     }
     /**
-     * @return the transitions
+     * @return the transitionsTemp
      */
-    public ArrayList<Transition> getTransitions() {
-        return transitions;
+    public ArrayList<Transition> getTransitionsTemp() {
+        return transitionsTemp;
     }
 
     /**
@@ -55,29 +65,35 @@ public class Modelo extends Observable {
     public void addTransition(String s,String syntax){
         addTransition(s);
         for (int i = 0; i < syntax.length(); i++) {
-            getTransitions().add(new Transition(syntax.charAt(i)+"", tempStates.get(0), tempStates.get(1)));
+            getTransitionsTemp().add(new Transition(syntax.charAt(i)+"", tempStates.get(0), tempStates.get(1)));
         }
-        //
+        while(historial.size()>actualH){
+              historial.remove(historial.size()-1);
+        }   
+        historial.add("transitio");
+        actualH = historial.size();
+        actualT = transitionsTemp.size();
+        transition= (ArrayList<Transition>) transitionsTemp.clone();
         selected=false;
         tempStates.clear();
         setChanged();
-        notifyObservers(getTransitions().get(getTransitions().size()-1));
+        notifyObservers(getTransitionsTemp().get(getTransitionsTemp().size()-1));
     }
     public void changeStatePosition(String s,int x,int y,boolean isFinal){
         State auxState=states.stream().filter(z->z.getStateId().equals(s)).collect(Collectors.toList()).get(0);
         auxState.setPosition(new Position(x,y));
         setChanged();
         notifyObservers(auxState);
-        for (int i = 0; i < getTransitions().size(); i++) {
-            if (getTransitions().get(i).getFrom()==auxState) {
+        for (int i = 0; i < getTransitionsTemp().size(); i++) {
+            if (getTransitionsTemp().get(i).getFrom()==auxState) {
                 setChanged();
-                getTransitions().get(i).setFinalPosition(isFinal);
-                notifyObservers(getTransitions().get(i));
+                getTransitionsTemp().get(i).setFinalPosition(isFinal);
+                notifyObservers(getTransitionsTemp().get(i));
             }
-            else if(getTransitions().get(i).getTo()==auxState){
+            else if(getTransitionsTemp().get(i).getTo()==auxState){
                 setChanged();
-                getTransitions().get(i).setFinalPosition(isFinal);
-                notifyObservers(getTransitions().get(i));
+                getTransitionsTemp().get(i).setFinalPosition(isFinal);
+                notifyObservers(getTransitionsTemp().get(i));
             }   
         }
     }
@@ -90,14 +106,28 @@ public class Modelo extends Observable {
                     notifyObservers("Ya Exite un Estado Inicio");
                 }               
                 else{
+                        while(states.size()>actualS){
+                            states.remove(states.size()-1);
+                        }   
+                        
+                        while(historial.size()>actualH){
+                            historial.remove(historial.size()-1);
+                        }   
                     states.add(new State(stateId, type));
+                    historial.add("estado");
+                     actualH=historial.size();
+                     actualS=states.size();
                     setChanged();
                     notifyObservers(states.get(states.size()-1));
                 }
             }
         }
         else{
+            
             states.add(new State(stateId, type));
+            historial.add("estado");
+            actualH=historial.size();
+            actualS=states.size();
             setChanged();
             notifyObservers(states.get(states.size()-1));
         }
@@ -139,5 +169,61 @@ public class Modelo extends Observable {
     private void hileraIncorrecta(){
         setChanged();
         notifyObservers("Hilera Inorrecta");
+    }
+    public void undo(){
+            if(!historial.isEmpty()){
+                if(actualH==-1){ 
+                    actualH= historial.size();
+                    actualS= states.size();
+                    actualT=transitionsTemp.size();
+                }
+                
+                if(actualS>0 && historial.get(actualH-1)=="estado" ){
+                    System.out.println("Modelo.Modelo.undo()"+"circulo");
+                    actualH--;
+                    actualS--;
+                    states.get(actualS).setVisible(false);
+                    setChanged();
+                    notifyObservers(states.get(actualS));
+                }
+                if(actualT>0 && historial.get(actualH-1)=="transitio"){
+                    System.out.println("Modelo.Modelo.undo()"+"raya");
+                    actualH--;
+                    actualT--;
+                    transitionsTemp.remove(actualT);
+                    actualT--;
+                    transitionsTemp.remove(actualT);
+                    setChanged();
+                    if(transitionsTemp.size()==0){notifyObservers(null);}
+                    else{notifyObservers(getTransitionsTemp().get(getTransitionsTemp().size()-1));}
+                }
+            }
+        }
+    public void redo(){
+         if(!historial.isEmpty()){
+                if(actualH==-1){ 
+                    actualH= historial.size();
+                    actualS= states.size();
+                }         
+                if(historial.size()>actualH && historial.get(actualH)=="estado"){
+                    System.out.println("Modelo.Modelo.redo()"+"Circulo");
+                    states.get(actualS).setVisible(true);
+                    setChanged();
+                    notifyObservers(states.get(actualS));
+                    actualH++;
+                    actualS++;
+                }
+                
+                if(historial.size()>actualH && historial.get(actualH)=="transitio"){
+                    System.out.println("Modelo.Modelo.redo()" +"raya");
+                    actualT++;
+                    transitionsTemp.add(transition.get(actualT-1));
+                    actualT++;
+                    transitionsTemp.add(transition.get(actualT-1));
+                    actualH++;
+                    setChanged();
+                    notifyObservers(getTransitionsTemp().get(getTransitionsTemp().size()-1));
+                }
+            }
     }
 }
