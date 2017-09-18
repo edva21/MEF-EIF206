@@ -21,6 +21,69 @@ import javax.swing.JOptionPane;
  * @author edva5
  */
 public class Modelo extends Observable {
+
+    /**
+     * @return the states
+     */
+    public ArrayList<State> getStates() {
+        return states;
+    }
+
+    /**
+     * @param states the states to set
+     */
+    public void setStates(ArrayList<State> states) {
+        this.states = states;
+    }
+
+    /**
+     * @param transitionsTemp the transitionsTemp to set
+     */
+    public void setTransitionsTemp(ArrayList<Transition> transitionsTemp) {
+        this.transitionsTemp = transitionsTemp;
+    }
+
+    /**
+     * @return the tempStates
+     */
+    public ArrayList<State> getTempStates() {
+        return tempStates;
+    }
+
+    /**
+     * @param tempStates the tempStates to set
+     */
+    public void setTempStates(ArrayList<State> tempStates) {
+        this.tempStates = tempStates;
+    }
+
+    /**
+     * @return the transition
+     */
+    public ArrayList<Transition> getTransition() {
+        return transition;
+    }
+
+    /**
+     * @param transition the transition to set
+     */
+    public void setTransition(ArrayList<Transition> transition) {
+        this.transition = transition;
+    }
+
+    /**
+     * @return the historial
+     */
+    public ArrayList<String> getHistorial() {
+        return historial;
+    }
+
+    /**
+     * @param historial the historial to set
+     */
+    public void setHistorial(ArrayList<String> historial) {
+        this.historial = historial;
+    }
     private ArrayList<State> states;//Estado
     private ArrayList<Transition> transitionsTemp;//Cambios de Estados
     private ArrayList<State> tempStates;//Pila de Estados
@@ -44,6 +107,13 @@ public class Modelo extends Observable {
     /**
      * @return the transitionsTemp
      */
+    public void clearModelo(){
+        getTransitionsTemp().clear();
+        getHistorial().clear();
+        getStates().clear();
+        getTempStates().clear();
+        getTransition().clear();
+    }
     public ArrayList<Transition> getTransitionsTemp() {
         return transitionsTemp;
     }
@@ -56,31 +126,31 @@ public class Modelo extends Observable {
     }
     
     private boolean stateExists(String s){
-        return states.stream().anyMatch(x->x.getStateId().equals(s));
+        return getStates().stream().anyMatch(x->x.getStateId().equals(s));
     }
     public void addTransition(String s){        
-         tempStates.add(states.stream().filter(x->x.getStateId().equals(s)).collect(Collectors.toList()).get(0));        
+         getTempStates().add(getStates().stream().filter(x->x.getStateId().equals(s)).collect(Collectors.toList()).get(0));        
         selected=true;   
     }
     public void addTransition(String s,String syntax){
         addTransition(s);
         for (int i = 0; i < syntax.length(); i++) {
-            getTransitionsTemp().add(new Transition(syntax.charAt(i)+"", tempStates.get(0), tempStates.get(1)));
+            getTransitionsTemp().add(new Transition(syntax.charAt(i)+"", getTempStates().get(0), getTempStates().get(1)));
         }
-        while(historial.size()>actualH){
-              historial.remove(historial.size()-1);
+        while(getHistorial().size()>actualH){
+              getHistorial().remove(getHistorial().size()-1);
         }   
-        historial.add("transitio");
-        actualH = historial.size();
-        actualT = transitionsTemp.size();
-        transition= (ArrayList<Transition>) transitionsTemp.clone();
+        getHistorial().add("transitio");
+        actualH = getHistorial().size();
+        actualT = getTransitionsTemp().size();
+        setTransition((ArrayList<Transition>) getTransitionsTemp().clone());
         selected=false;
-        tempStates.clear();
+        getTempStates().clear();
         setChanged();
         notifyObservers(getTransitionsTemp().get(getTransitionsTemp().size()-1));
     }
     public void changeStatePosition(String s,int x,int y,boolean isFinal){
-        State auxState=states.stream().filter(z->z.getStateId().equals(s)).collect(Collectors.toList()).get(0);
+        State auxState=getStates().stream().filter(z->z.getStateId().equals(s)).collect(Collectors.toList()).get(0);
         auxState.setPosition(new Position(x,y));
         setChanged();
         notifyObservers(auxState);
@@ -99,41 +169,41 @@ public class Modelo extends Observable {
     }
     
     public void createState(String stateId,int type){
-        if (states.size()>0) {
+        if (getStates().size()>0) {
             if (!states.stream().anyMatch(x->x.getStateId().equals(stateId))) {
-                if (type==State.INITIAL&&states.stream().anyMatch(x->x.getType()==State.INITIAL)) {
+                if (type==State.INITIAL&&getStates().stream().anyMatch(x->x.getType()==State.INITIAL)) {
                     setChanged();
                     notifyObservers("Ya Exite un Estado Inicio");
                 }               
                 else{
-                        while(states.size()>actualS){
-                            states.remove(states.size()-1);
+                        while(getStates().size()>actualS){
+                            getStates().remove(getStates().size()-1);
                         }   
                         
-                        while(historial.size()>actualH){
-                            historial.remove(historial.size()-1);
+                        while(getHistorial().size()>actualH){
+                            getHistorial().remove(getHistorial().size()-1);
                         }   
-                    states.add(new State(stateId, type));
-                    historial.add("estado");
-                     actualH=historial.size();
-                     actualS=states.size();
+                    getStates().add(new State(stateId, type));
+                    getHistorial().add("estado");
+                     actualH=getHistorial().size();
+                     actualS=getStates().size();
                     setChanged();
-                    notifyObservers(states.get(states.size()-1));
+                    notifyObservers(getStates().get(getStates().size()-1));
                 }
             }
         }
         else{
             
-            states.add(new State(stateId, type));
-            historial.add("estado");
-            actualH=historial.size();
-            actualS=states.size();
+            getStates().add(new State(stateId, type));
+            getHistorial().add("estado");
+            actualH=getHistorial().size();
+            actualS=getStates().size();
             setChanged();
-            notifyObservers(states.get(states.size()-1));
+            notifyObservers(getStates().get(getStates().size()-1));
         }
     }
     public void tryHilera(String s){
-        State stateAux = states.stream().filter(x->x.getType()==State.INITIAL).collect(Collectors.toList()).get(0);
+        State stateAux = getStates().stream().filter(x->x.getType()==State.INITIAL).collect(Collectors.toList()).get(0);
         tryHilera(stateAux,s,0);//Envia primer estado y la Hilera a un metodo recursivo para revisar si la hilera cumple con las reglas establesidas
     }
     private void tryHilera(State s,String hilera,int index){//Metodo recursivo
@@ -173,28 +243,28 @@ public class Modelo extends Observable {
     public void undo(){
             if(!historial.isEmpty()){
                 if(actualH==-1){ 
-                    actualH= historial.size();
-                    actualS= states.size();
-                    actualT=transitionsTemp.size();
+                    actualH= getHistorial().size();
+                    actualS= getStates().size();
+                    actualT=getTransitionsTemp().size();
                 }
                 
-                if(actualS>0 && historial.get(actualH-1)=="estado" ){
+                if(actualS>0 && getHistorial().get(actualH-1)=="estado" ){
                     System.out.println("Modelo.Modelo.undo()"+"circulo");
                     actualH--;
                     actualS--;
-                    states.get(actualS).setVisible(false);
+                    getStates().get(actualS).setVisible(false);
                     setChanged();
-                    notifyObservers(states.get(actualS));
+                    notifyObservers(getStates().get(actualS));
                 }
-                if(actualT>0 && historial.get(actualH-1)=="transitio"){
+                if(actualT>0 && getHistorial().get(actualH-1)=="transitio"){
                     System.out.println("Modelo.Modelo.undo()"+"raya");
                     actualH--;
                     actualT--;
-                    transitionsTemp.remove(actualT);
+                    getTransitionsTemp().remove(actualT);
                     actualT--;
-                    transitionsTemp.remove(actualT);
+                    getTransitionsTemp().remove(actualT);
                     setChanged();
-                    if(transitionsTemp.size()==0){notifyObservers(null);}
+                    if(getTransitionsTemp().size()==0){notifyObservers(null);}
                     else{notifyObservers(getTransitionsTemp().get(getTransitionsTemp().size()-1));}
                 }
             }
@@ -202,24 +272,24 @@ public class Modelo extends Observable {
     public void redo(){
          if(!historial.isEmpty()){
                 if(actualH==-1){ 
-                    actualH= historial.size();
-                    actualS= states.size();
+                    actualH= getHistorial().size();
+                    actualS= getStates().size();
                 }         
-                if(historial.size()>actualH && historial.get(actualH)=="estado"){
+                if(getHistorial().size()>actualH && getHistorial().get(actualH)=="estado"){
                     System.out.println("Modelo.Modelo.redo()"+"Circulo");
-                    states.get(actualS).setVisible(true);
+                    getStates().get(actualS).setVisible(true);
                     setChanged();
-                    notifyObservers(states.get(actualS));
+                    notifyObservers(getStates().get(actualS));
                     actualH++;
                     actualS++;
                 }
                 
-                if(historial.size()>actualH && historial.get(actualH)=="transitio"){
+                if(getHistorial().size()>actualH && getHistorial().get(actualH)=="transitio"){
                     System.out.println("Modelo.Modelo.redo()" +"raya");
                     actualT++;
-                    transitionsTemp.add(transition.get(actualT-1));
+                    getTransitionsTemp().add(getTransition().get(actualT-1));
                     actualT++;
-                    transitionsTemp.add(transition.get(actualT-1));
+                    getTransitionsTemp().add(getTransition().get(actualT-1));
                     actualH++;
                     setChanged();
                     notifyObservers(getTransitionsTemp().get(getTransitionsTemp().size()-1));

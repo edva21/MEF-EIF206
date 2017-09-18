@@ -21,10 +21,13 @@ import java.util.Observer;
 import java.util.stream.Collectors;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollBar;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
@@ -35,12 +38,34 @@ import javax.swing.table.DefaultTableModel;
 public class Vista extends javax.swing.JFrame implements Observer{
 
     /**
+     * @return the automatas
+     */
+    public ArrayList<RoundButton> getAutomatas() {
+        return automatas;
+    }
+
+    /**
+     * @return the modelo
+     */
+    public Modelo getModelo() {
+        return modelo;
+    }
+
+    /**
+     * @param modelo the modelo to set
+     */
+    public void setModelo(Modelo modelo) {
+        this.modelo = modelo;
+    }
+
+    /**
      * @param controlador the controlador to set
      */
     public void setControlador(Controlador controlador) {
         this.controlador = controlador;
         this.addKeyListener(controlador);
-   
+        this.addMouseMotionListener(controlador);
+        this.jComboBox.addActionListener(controlador);
         undoMnuItm.addActionListener(controlador);
         redoMnuItm.addActionListener(controlador);
         guardarMnuItm.addActionListener(controlador);
@@ -59,14 +84,21 @@ public class Vista extends javax.swing.JFrame implements Observer{
     private Controlador controlador;
     private JTable table;
     private DefaultTableModel tableModel;
+    private Modelo modelo;
+    private JComboBox jComboBox;
+    private JScrollPane jScrollPane;
+    
     /**Im
      * Creates new form Vista
      */
     public Vista() {
+        this.setFocusable(true);
         table = new JTable();
         tableModel = (DefaultTableModel) table.getModel();
-        this.add(table);
-        table.setBounds(500, 50, 300, 300);
+        jScrollPane = new JScrollPane(table);
+        this.add(jScrollPane);
+        jScrollPane.setBounds(500, 50, 300, 300);
+        //table.setBounds(500, 50, 300, 300);
         initComponents();
         InitiaizePrimaryButtons();
         automatas = new ArrayList<RoundButton>();
@@ -77,6 +109,7 @@ public class Vista extends javax.swing.JFrame implements Observer{
         tableModel.addColumn("To");
         tableModel.addColumn("Sintaxis");
         tableModel.addRow(aux);
+        
     }
     public String showImputDialog(String message){
         return JOptionPane.showInputDialog(null, message);
@@ -89,9 +122,17 @@ public class Vista extends javax.swing.JFrame implements Observer{
     g2.clearRect(x1-100, y1-100, x2+100, y2+100);    
     }   
     public void paintLine (int x1,int y1,int x2,int y2) {
-    /*Graphics2D g2 = (Graphics2D) this.getGraphics();      
-    g2.draw(new Line2D.Double(x1, y1, x2, y2));    */
-    this.getGraphics().drawLine(x1, y1, x2, y2);
+        if (x1==x2&&y1==y2) {
+            this.getGraphics().drawRect(x2, y2, 30, 30);
+            //this.getGraphics().drawOval(x1, y1, 10, 10);
+        }
+        else
+        {
+            
+            this.getGraphics().drawLine(x1, y1, x2-20, y2-20);
+            this.getGraphics().drawOval(x2-20, y2-20, 10, 10);
+        }
+            
     }   
     public void addToTable(String From,String To,String Sintax){
         String[] aux=new String[3];
@@ -132,88 +173,93 @@ public class Vista extends javax.swing.JFrame implements Observer{
             redoMnuItm= new JMenuItem("Redo");
             ediMnu.add(redoMnuItm);
         menuBar.add(ediMnu);
-        
+             
     setJMenuBar(menuBar);
+    String[] preloadedLangauges={"Libre","Decimal","Binario","Hexadecimal"};
+    jComboBox = new JComboBox(preloadedLangauges);
+    jComboBox.setVisible(true);
+    jComboBox.setBounds(850, 50, 100, 25);
+    this.add(jComboBox);
     }
     private void updateStateView(Object arg){
-        if (automatas.size()!=0) {
+        if (getAutomatas().size()!=0) {
                 if (!automatas.stream().anyMatch(x->x.getText().equals(((State)arg).getStateId()))&& ((State)arg).isVisible()) {
-                    automatas.add(new RoundButton(((State)arg).getStateId()));
-                    automatas.get(automatas.size()-1).addKeyListener(controlador);
-                    automatas.get(automatas.size()-1).setBounds(((State)arg).getPosition().getX()+100,((State)arg).getPosition().getY()+100, 48, 48);
-                    this.add(automatas.get(automatas.size()-1));
-                    automatas.get(automatas.size()-1).addMouseMotionListener(controlador);
-                    automatas.get(automatas.size()-1).addMouseListener(controlador);
+                    getAutomatas().add(new RoundButton(((State)arg).getStateId()));
+                    getAutomatas().get(getAutomatas().size()-1).addKeyListener(controlador);
+                    getAutomatas().get(getAutomatas().size()-1).setBounds(((State)arg).getPosition().getX()+100,((State)arg).getPosition().getY()+100, 48, 48);
+                    this.add(getAutomatas().get(getAutomatas().size()-1));
+                    getAutomatas().get(getAutomatas().size()-1).addMouseMotionListener(controlador);
+                    getAutomatas().get(getAutomatas().size()-1).addMouseListener(controlador);
                     switch(((State)arg).getType()){
                         case 1:
-                        automatas.get(automatas.size()-1).setBackground(Color.BLUE);                       
+                        getAutomatas().get(getAutomatas().size()-1).setBackground(Color.BLUE);                       
                          break;
                         case 2:
-                            automatas.get(automatas.size()-1).setBackground(Color.GREEN);
+                            getAutomatas().get(getAutomatas().size()-1).setBackground(Color.GREEN);
                          break;
                         case 3:
-                            automatas.get(automatas.size()-1).setBackground(Color.RED);
+                            getAutomatas().get(getAutomatas().size()-1).setBackground(Color.RED);
                          break;
                     }
-                     this.add(automatas.get(automatas.size()-1));
+                     this.add(getAutomatas().get(getAutomatas().size()-1));
                 }
                 else if(((State)arg).isVisible())
                 {
-                    RoundButton auxRB=(RoundButton) automatas.stream().filter(x->x.getText().equals(((State)arg).getStateId())).collect(Collectors.toList()).get(0);//actualiza estado en vista
+                    RoundButton auxRB=(RoundButton) getAutomatas().stream().filter(x->x.getText().equals(((State)arg).getStateId())).collect(Collectors.toList()).get(0);//actualiza estado en vista
                     auxRB.setBounds(((State)arg).getPosition().getX(),((State)arg).getPosition().getY(), 50, 50);
                 }
             }
         else if(((State)arg).isVisible()){
-                automatas.add(new RoundButton(((State)arg).getStateId()));                
-                automatas.get(0).setBounds(((State)arg).getPosition().getX(),((State)arg).getPosition().getY(), 50, 50);
-                this.add(automatas.get(0));
-                automatas.get(0).addMouseMotionListener(controlador);
-                automatas.get(0).addMouseListener(controlador);
-                automatas.get(0).addKeyListener(controlador);
+                getAutomatas().add(new RoundButton(((State)arg).getStateId()));                
+                getAutomatas().get(0).setBounds(((State)arg).getPosition().getX(),((State)arg).getPosition().getY(), 50, 50);
+                this.add(getAutomatas().get(0));
+                getAutomatas().get(0).addMouseMotionListener(controlador);
+                getAutomatas().get(0).addMouseListener(controlador);
+                getAutomatas().get(0).addKeyListener(controlador);
                 switch(((State)arg).getType()){
                     case 1:
-                    automatas.get(0).setBackground(Color.BLUE);
+                    getAutomatas().get(0).setBackground(Color.BLUE);
                      break;
                     case 2:
-                        automatas.get(0).setBackground(Color.GREEN);
+                        getAutomatas().get(0).setBackground(Color.GREEN);
                      break;
                     case 3:
-                        automatas.get(0).setBackground(Color.RED);
+                        getAutomatas().get(0).setBackground(Color.RED);
                      break;
                 }
-                this.add(automatas.get(0));
+                this.add(getAutomatas().get(0));
                
                 //automatas.get(0).setVisible(true);
             }
         if(!((State)arg).isVisible()){
-            int temp = automatas.size();
-            this.remove(automatas.get(temp-1));
-           automatas.remove(temp-1);
+            int temp = getAutomatas().size();
+            this.remove(getAutomatas().get(temp-1));
+            getAutomatas().remove(temp-1);
             this.revalidate();
             this.repaint();
         }
         
     }
-    private void updateTransitionsView(Observable o,Object arg){
+    private void updateTransitionsView(Object arg){
         ((Transition)arg).getFrom().getPosition().getX();
             ((Transition)arg).getTo().getPosition().getX();
-            RoundButton fromAux = this.automatas.stream().filter(x->x.getText().equals(((Transition)arg).getFrom().getStateId())).collect(Collectors.toList()).get(0);
-            RoundButton toAux = this.automatas.stream().filter(x->x.getText().equals(((Transition)arg).getTo().getStateId())).collect(Collectors.toList()).get(0);
-            
+            RoundButton fromAux = this.getAutomatas().stream().filter(x->x.getText().equals(((Transition)arg).getFrom().getStateId())).collect(Collectors.toList()).get(0);
+            RoundButton toAux = this.getAutomatas().stream().filter(x->x.getText().equals(((Transition)arg).getTo().getStateId())).collect(Collectors.toList()).get(0);            
             if (((Transition)arg).isFinalPosition()) {
-//*******************Updates table*********************************************************************//                
-               tableModel.setRowCount(0);
-                ((Modelo)o).getTransitionsTemp().stream().forEach(x->addToTable(x.getFrom().getStateId(), x.getTo().getStateId(),x.getSyntax()));
-//****************************************************************************************//                                
-                ((Modelo)o).getTransitionsTemp().stream().forEach(x->paintLine(x.getFrom().getPosition().getX()+50, x.getFrom().getPosition().getY()+80, x.getTo().getPosition().getX(), x.getTo().getPosition().getY()+80));
-                
+               updateTable();
+               updateLines();                
             }
-            else{
-                
-                repaint();
-              //  paintLine(((Transition)arg).getFrom().getPosition().getX()+25, ((Transition)arg).getFrom().getPosition().getY()+80, ((Transition)arg).getTo().getPosition().getX()+25, ((Transition)arg).getTo().getPosition().getY()+80);
-                ((Modelo)o).getTransitionsTemp().stream().forEach(x->paintLine(x.getFrom().getPosition().getX()+50, x.getFrom().getPosition().getY()+80, x.getTo().getPosition().getX(), x.getTo().getPosition().getY()+80));
+            else{                
+                repaint();              
+                updateLines();
             }
+    }
+    public void updateTable(){
+                tableModel.setRowCount(0);
+               modelo.getTransitionsTemp().stream().forEach(x->addToTable(x.getFrom().getStateId(), x.getTo().getStateId(),x.getSyntax()));
+    }
+    public void updateLines(){
+        modelo.getTransitionsTemp().stream().forEach(x->paintLine(x.getFrom().getPosition().getX()+50, x.getFrom().getPosition().getY()+80, x.getTo().getPosition().getX()+50, x.getTo().getPosition().getY()+80));
     }
     /**
      * This method is called from within the constructor to initialize the form.
@@ -242,11 +288,14 @@ public class Vista extends javax.swing.JFrame implements Observer{
 
     @Override
     public void update(Observable o, Object arg) {
+        modelo=(Modelo) o;
         if (arg instanceof State){
             updateStateView(arg);
         }      
         else if (arg instanceof Transition) {
-            updateTransitionsView(o, arg);
+            updateTransitionsView(arg);
+            updateLines();
+            updateTable();
         }
         else if (arg instanceof String) {
             JOptionPane.showConfirmDialog(null, ((String)arg));            
