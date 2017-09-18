@@ -17,6 +17,7 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -145,6 +146,13 @@ public class Controlador implements ActionListener,MouseListener,MouseMotionList
                 break;
             }
         }
+        else if(e.getSource() instanceof JCheckBox){
+            if (((JCheckBox)e.getSource()).isSelected())
+                vista.getjScrollPane().setVisible(true);
+            else
+                vista.getjScrollPane().setVisible(false);
+            
+        }
         else
         {
                 switch(e.getActionCommand()){
@@ -183,8 +191,7 @@ public class Controlador implements ActionListener,MouseListener,MouseMotionList
         if (e.getSource() instanceof RoundButton )    //RoundButton son los Objetos que representan los estados 
         {            
             if (!modelo.isSelected())
-                modelo.addTransition(((RoundButton)e.getSource()).getText());   //Guarda estado en una pila, si la pila.size() ==2,  
-            
+                modelo.addTransition(((RoundButton)e.getSource()).getText());   //Guarda estado en una pila, si la pila.size() ==2,             
             else                                                                //toma el primer estado guardado como Origen del cambio de Estado y el segundo como destino
                 modelo.addTransition(((RoundButton)e.getSource()).getText(),vista.showImputDialog("Escriba Sintaxis"));                //Una vez ingresados los puntos se pide cual va a ser la sintaxis
         }          

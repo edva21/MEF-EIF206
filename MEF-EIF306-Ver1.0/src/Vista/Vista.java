@@ -6,6 +6,7 @@
 package Vista;
 
 import Controlador.Controlador;
+import LogicaDeNegocio.AnimationMessage;
 import LogicaDeNegocio.RoundButton;
 import LogicaDeNegocio.State;
 import LogicaDeNegocio.Transition;
@@ -20,8 +21,10 @@ import java.util.Observable;
 import java.util.Observer;
 import java.util.stream.Collectors;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -36,6 +39,27 @@ import javax.swing.table.DefaultTableModel;
  * @author edva5
  */
 public class Vista extends javax.swing.JFrame implements Observer{
+
+    /**
+     * @return the jScrollPane
+     */
+    public JScrollPane getjScrollPane() {
+        return jScrollPane;
+    }
+
+    /**
+     * @param jScrollPane the jScrollPane to set
+     */
+    public void setjScrollPane(JScrollPane jScrollPane) {
+        this.jScrollPane = jScrollPane;
+    }
+
+    /**
+     * @return the table
+     */
+    public JTable getTable() {
+        return table;
+    }
 
     /**
      * @return the automatas
@@ -63,6 +87,7 @@ public class Vista extends javax.swing.JFrame implements Observer{
      */
     public void setControlador(Controlador controlador) {
         this.controlador = controlador;
+        this.jCheckBox.addActionListener(controlador);
         this.addKeyListener(controlador);
         this.addMouseMotionListener(controlador);
         this.jComboBox.addActionListener(controlador);
@@ -87,6 +112,7 @@ public class Vista extends javax.swing.JFrame implements Observer{
     private Modelo modelo;
     private JComboBox jComboBox;
     private JScrollPane jScrollPane;
+    private JCheckBox jCheckBox;
     
     /**Im
      * Creates new form Vista
@@ -95,7 +121,7 @@ public class Vista extends javax.swing.JFrame implements Observer{
         this.setFocusable(true);
         table = new JTable();
         tableModel = (DefaultTableModel) table.getModel();
-        jScrollPane = new JScrollPane(table);
+        jScrollPane = new JScrollPane(getTable());
         this.add(jScrollPane);
         jScrollPane.setBounds(500, 50, 300, 300);
         //table.setBounds(500, 50, 300, 300);
@@ -123,12 +149,11 @@ public class Vista extends javax.swing.JFrame implements Observer{
     }   
     public void paintLine (int x1,int y1,int x2,int y2) {
         if (x1==x2&&y1==y2) {
-            this.getGraphics().drawRect(x2, y2, 30, 30);
+            this.getGraphics().drawRect(x2-15, y2+15, 30, 30);
             //this.getGraphics().drawOval(x1, y1, 10, 10);
         }
         else
-        {
-            
+        {            
             this.getGraphics().drawLine(x1, y1, x2-20, y2-20);
             this.getGraphics().drawOval(x2-20, y2-20, 10, 10);
         }
@@ -178,8 +203,15 @@ public class Vista extends javax.swing.JFrame implements Observer{
     String[] preloadedLangauges={"Libre","Decimal","Binario","Hexadecimal"};
     jComboBox = new JComboBox(preloadedLangauges);
     jComboBox.setVisible(true);
+    jCheckBox= new JCheckBox();
+        JLabel tableckBxLbl= new JLabel("Mostrar Tabla");
+        tableckBxLbl.setBounds(700, -25, 100, 100);
+    jCheckBox.setBounds(800, 0, 25, 50);
     jComboBox.setBounds(850, 50, 100, 25);
     this.add(jComboBox);
+    this.add(tableckBxLbl);
+    this.add(jCheckBox);
+        jScrollPane.setVisible(false);
     }
     private void updateStateView(Object arg){
         if (getAutomatas().size()!=0) {
@@ -261,6 +293,46 @@ public class Vista extends javax.swing.JFrame implements Observer{
     public void updateLines(){
         modelo.getTransitionsTemp().stream().forEach(x->paintLine(x.getFrom().getPosition().getX()+50, x.getFrom().getPosition().getY()+80, x.getTo().getPosition().getX()+50, x.getTo().getPosition().getY()+80));
     }
+    public void animateSintaxisCheck(AnimationMessage am){
+        if (am.getPriority().equals("Pivot")) {
+            for (int i = 0; i < automatas.size(); i++) {
+                if (automatas.get(i).getBackground().equals(Color.ORANGE)) {
+                    switch(modelo.getStates().stream().filter(x->x.getStateId().equals(am.getStateId())).collect(Collectors.toList()).get(0).getType())
+                    {
+                        case 1:
+                        automatas.get(i).setBackground(Color.BLUE);
+                        break;
+                        case 2:
+                            automatas.get(i).setBackground(Color.GREEN);
+                        break;
+                        case 3:
+                            automatas.get(i).setBackground(Color.RED);
+                        break;    
+                    }
+                }
+            }
+            automatas.stream().filter(x->x.getText().equals(am.getStateId())).collect(Collectors.toList()).get(0).setBackground(Color.ORANGE);
+        }
+        else{
+            for (int i = 0; i < automatas.size(); i++) {
+                if (automatas.get(i).getBackground().equals(Color.ORANGE)) {
+                    switch(modelo.getStates().stream().filter(x->x.getStateId().equals(am.getStateId())).collect(Collectors.toList()).get(0).getType())
+                    {
+                        case 1:
+                        automatas.get(i).setBackground(Color.BLUE);
+                        break;
+                        case 2:
+                            automatas.get(i).setBackground(Color.GREEN);
+                        break;
+                        case 3:
+                            automatas.get(i).setBackground(Color.RED);
+                        break;    
+                    }
+                }
+            }
+            automatas.stream().filter(x->x.getText().equals(am.getStateId())).collect(Collectors.toList()).get(0).setBackground(Color.ORANGE);
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -299,6 +371,9 @@ public class Vista extends javax.swing.JFrame implements Observer{
         }
         else if (arg instanceof String) {
             JOptionPane.showConfirmDialog(null, ((String)arg));            
+        }
+        else if (arg instanceof AnimationMessage) {
+        //    animateSintaxisCheck(((AnimationMessage)arg));
         }
        
         this.revalidate();

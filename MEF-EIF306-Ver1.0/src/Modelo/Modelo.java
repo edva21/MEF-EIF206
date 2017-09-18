@@ -6,6 +6,7 @@
 package Modelo;
 
 
+import LogicaDeNegocio.AnimationMessage;
 import LogicaDeNegocio.Position;
 import LogicaDeNegocio.State;
 import LogicaDeNegocio.Transition;
@@ -209,7 +210,11 @@ public class Modelo extends Observable {
     private void tryHilera(State s,String hilera,int index){//Metodo recursivo
         int transitionIndex=-1;//numero en lista de cambo de estados, por el mmomento sera -1(que no tome ningun valor posible dentro de la lista)
         String auxString;//String de prueba para tomar los tados a revisar en la hilera
+        /*setChanged();
+        notifyObservers(new AnimationMessage(s.getStateId(), "Pivot"));*/
         for (int i = 0; i < s.getSent().size(); i++) {//recorre todoss los cambios de estado posibles
+            /*setChanged();
+            notifyObservers(new AnimationMessage(s.getSent().get(i).getTo().getStateId(), "NotPivot"));*/
             if (hilera.length()-index>=s.getSent().get(i).getSyntax().length()) {//se cumple que la hilera tiene almenos la misma cantidad de letras de la que requiere la sintaxis, entonces continue
                 auxString=hilera.substring(index, index+s.getSent().get(i).getSyntax().length());//Se ingresa los datos a revisar en la hilera en un Sring auxiliar auxString
                 if (auxString.equals(s.getSent().get(i).getSyntax())) {//Compara los Datos,
