@@ -136,7 +136,9 @@ public class Modelo extends Observable {
     public void addTransition(String s,String syntax){
         addTransition(s);
         for (int i = 0; i < syntax.length(); i++) {
-            getTransitionsTemp().add(new Transition(syntax.charAt(i)+"", getTempStates().get(0), getTempStates().get(1)));
+           
+           getTransitionsTemp().add(new Transition(syntax.charAt(i)+"", getTempStates().get(0), getTempStates().get(1)));
+           getHistorial().add("transitio");
         }
         while(getHistorial().size()>actualH){
               getHistorial().remove(getHistorial().size()-1);
@@ -266,8 +268,8 @@ public class Modelo extends Observable {
                     actualH--;
                     actualT--;
                     getTransitionsTemp().remove(actualT);
-                    actualT--;
-                    getTransitionsTemp().remove(actualT);
+                    /*actualT--;
+                    getTransitionsTemp().remove(actualT);*/
                     setChanged();
                     if(getTransitionsTemp().size()==0){notifyObservers(null);}
                     else{notifyObservers(getTransitionsTemp().get(getTransitionsTemp().size()-1));}
